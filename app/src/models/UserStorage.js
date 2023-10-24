@@ -1,43 +1,30 @@
 "use strict";
 
-class UserStroage {
-    static #users = {
-        id: ["a", "b", "c"],
-        psword: ["1", "2", "3"],
-        name: ["김", "이", "박"],
-    };
+const db = require("../config/db");
 
-    static getUsers(...fields) {
-        const users = this.#users;
-        const newUsers = fields.reduce((newUsers, field) => {
-            if (users.hasOwnProperty(field)) {
-                newUsers[field] = users[field];
-            }
-            return newUsers;
-        }, {});
-        
-        return newUsers;
-    }
+class UserStroage {
 
     static getUserInfo(id) {
-        const users = this.#users;
-        const idx = users.id.indexOf(id);
-        const userKeys = Object.keys(users);
-        const userInfo = userKeys.reduce((newUser, info) => {
-            newUser[info] = users[info][idx];
-            return newUser;
-        }, {});
-
-        return userInfo;
+        return new Promise((resolve, reject) => {
+            const query = "SELECT * FROM users WHERE id = ?;";
+            db.query(query, [id], (err, data) => {
+                if (err) reject(`${err}`);
+                resolve(data[0]);
+            });
+        });
+        
     }
 
-    static save(userInfo) {
-        const users = this.#users;
-        users.id.push(userInfo.id);
-        users.name.push(userInfo.name);
-        users.psword.push(userInfo.psword);
-        
-        return { success: true};
+    
+
+    static async save(userInfo) {
+        return new Promise((resolve, reject) => {
+            const query = "INSERT INTO users(id, name, psword, birthDay, email, phoneNumb) VALUES(?, ?, ?, ?, ?, ?);";
+            db.query(query, [userInfo.id, userInfo.name, userInfo.psword, userInfo.birthDay, userInfo.email, userInfo.phoneNumb], (err) => {
+                if (err) reject(`${err}`);
+                resolve({ success: true });
+            });
+        });
     }
 }
 
